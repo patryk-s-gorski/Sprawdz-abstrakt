@@ -1,36 +1,48 @@
 {
-  "konferencje": {
-    "Mindflow": {
-      "limit_znakow": 2000,
-      "kategorie": ["Original research", "Case study", "Review / przegląd literatury"]
+  "kategorie": {
+    "Original research": {
+      "struktura": "sekcje",
+      "sekcje": ["Wstęp/cel", "Metody", "Wyniki", "Wnioski"],
+      "kryteria_merytoryczne": [
+        "Jasno sformułowany cel/hipoteza badawcza",
+        "Opis metodologii (projekt badania, próba, narzędzia)",
+        "Konkretne wyniki liczbowe (nie ogólniki typu \"wykazano poprawę\")",
+        "Wnioski wynikające bezpośrednio z wyników, bez nadinterpretacji"
+      ],
+      "kryteria_formalne": [
+        "Zachowanie wymaganej struktury sekcji (patrz wyżej)",
+        "Tytuł zwięzły i informacyjny, bez nierozwiniętych skrótów",
+        "Brak zdań niedokończonych lub urwanych z powodu limitu długości"
+      ]
     },
-    "Symposium on Medical Innovations": {
-      "limit_znakow": 1500,
-      "kategorie": ["Original research", "Case study"]
+    "Case study": {
+      "struktura": "sekcje",
+      "sekcje": ["Wstęp", "Opis przypadku", "Dyskusja/Wnioski"],
+      "kryteria_merytoryczne": [
+        "Jasny opis przypadku klinicznego (wiek, płeć, kontekst — bez danych identyfikujących pacjenta)",
+        "Uzasadnienie unikalności / wartości edukacyjnej przypadku",
+        "Chronologia przebiegu (diagnostyka, leczenie, wynik)",
+        "Wnioski kliniczne możliwe do uogólnienia"
+      ],
+      "kryteria_formalne": [
+        "Zachowanie wymaganej struktury sekcji (patrz wyżej)",
+        "Tytuł wskazujący na kluczowy aspekt przypadku, bez danych identyfikujących pacjenta",
+        "Brak zdań niedokończonych lub urwanych z powodu limitu długości"
+      ]
     },
-    "Własna konferencja": {
-      "limit_znakow": 2000,
-      "kategorie": ["Original research", "Case study", "Review / przegląd literatury"]
+    "Review / przegląd literatury": {
+      "struktura": "ciagly",
+      "kryteria_merytoryczne": [
+        "Jasno postawione pytanie przeglądu",
+        "Opis metodologii wyszukiwania (bazy, słowa kluczowe, kryteria włączenia/wyłączenia)",
+        "Synteza (nie tylko wyliczenie) znalezionych prac",
+        "Zidentyfikowane luki badawcze lub kierunki na przyszłość"
+      ],
+      "kryteria_formalne": [
+        "Tekst ciągły, bez wymaganych podnagłówków (dopuszczalne akapity tematyczne)",
+        "Tytuł jasno wskazujący zakres przeglądu",
+        "Brak zdań niedokończonych lub urwanych z powodu limitu długości"
+      ]
     }
-  },
-  "kryteria_kategorii": {
-    "Original research": [
-      "Jasno sformułowany cel/hipoteza badawcza",
-      "Opis metodologii (projekt badania, próba, narzędzia)",
-      "Konkretne wyniki liczbowe (nie ogólniki typu \"wykazano poprawę\")",
-      "Wnioski wynikające bezpośrednio z wyników, bez nadinterpretacji"
-    ],
-    "Case study": [
-      "Jasny opis przypadku klinicznego (wiek, płeć, kontekst — bez danych identyfikujących pacjenta)",
-      "Uzasadnienie unikalności / wartości edukacyjnej przypadku",
-      "Chronologia przebiegu (diagnostyka, leczenie, wynik)",
-      "Wnioski kliniczne możliwe do uogólnienia"
-    ],
-    "Review / przegląd literatury": [
-      "Jasno postawione pytanie przeglądu",
-      "Opis metodologii wyszukiwania (bazy, słowa kluczowe, kryteria włączenia/wyłączenia)",
-      "Synteza (nie tylko wyliczenie) znalezionych prac",
-      "Zidentyfikowane luki badawcze lub kierunki na przyszłość"
-    ]
   }
 }
