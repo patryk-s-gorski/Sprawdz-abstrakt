@@ -11,6 +11,7 @@ load_dotenv()
 
 MODEL = "claude-sonnet-5"
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "criteria_config.json")
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "assets", "logo.jpg")
 
 # Jednostki liczenia limitu. Klucze są stałe (używane w kodzie), etykiety tłumaczone przez t().
 JEDNOSTKI = {
@@ -26,7 +27,7 @@ WYMIARY = ["punktacja_formalna", "punktacja_merytoryczna", "punktacja_jezykowa"]
 
 TRANSLATIONS = {
     "Polski": {
-        "app_title": "📝 Sprawdź swój abstrakt",
+        "app_title": "Sprawdź swój abstrakt",
         "app_caption": "Wstępna, nieformalna ocena przed wysłaniem do komitetu recenzenckiego",
         "access_code_label": "Kod dostępu",
         "enter_button": "Wejdź",
@@ -81,7 +82,7 @@ TRANSLATIONS = {
         "average_caption": "**{etykieta}** (średnia z 3 wymiarów: {srednia}/100)",
     },
     "English": {
-        "app_title": "📝 Check your abstract",
+        "app_title": "Check your abstract",
         "app_caption": "A preliminary, informal review before submission to the review committee",
         "access_code_label": "Access code",
         "enter_button": "Enter",
@@ -190,10 +191,10 @@ def opis_struktury(kat_cfg):
 
 def kolor_wyniku(punktacja):
     if punktacja >= 80:
-        return "#0F6E5E"  # zielony, zgodny z motywem aplikacji
+        return "#15803D"  # zielony
     if punktacja >= 50:
-        return "#D97706"  # bursztynowy
-    return "#DC2626"  # czerwony
+        return "#B45309"  # bursztynowy
+    return "#B91C1C"  # czerwony
 
 
 def etykieta_wyniku(punktacja):
@@ -449,17 +450,24 @@ def clear_abstrakt():
     st.session_state.abstrakt_tytul = ""
 
 
+def render_header():
+    logo_col, lang_col = st.columns([3, 1])
+    with logo_col:
+        if os.path.exists(LOGO_PATH):
+            st.image(LOGO_PATH, width=260)
+    with lang_col:
+        st.selectbox(
+            "🌐", ["Polski", "English"], key="ui_lang", label_visibility="collapsed",
+        )
+    st.title(t("app_title"))
+    st.caption(t("app_caption"))
+
+
 # ---------------- UI ----------------
 
 st.set_page_config(page_title="Sprawdź swój abstrakt / Check your abstract", page_icon="📝", layout="centered")
 
 config = load_config()
-
-_, lang_col = st.columns([5, 1])
-with lang_col:
-    st.selectbox(
-        "🌐", ["Polski", "English"], key="ui_lang", label_visibility="collapsed",
-    )
 
 ACCESS_CODE = get_access_code()
 
@@ -467,8 +475,7 @@ if ACCESS_CODE:
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
     if not st.session_state.authenticated:
-        st.title(t("app_title"))
-        st.caption(t("app_caption"))
+        render_header()
         st.divider()
         wpisany_kod = st.text_input(t("access_code_label"), type="password", key="wpisany_kod")
         if st.button(t("enter_button"), type="primary"):
@@ -481,8 +488,7 @@ if ACCESS_CODE:
 
 client = get_client()
 
-st.title(t("app_title"))
-st.caption(t("app_caption"))
+render_header()
 
 if client is None:
     st.error(t("no_api_key"))
@@ -581,7 +587,8 @@ if st.button(t("check_button"), type="primary", disabled=not gotowe_do_sprawdzen
             st.markdown(raw)
 
         if wynik:
-            render_wynik(wynik, aktualna_dlugosc, limit, jednostka_etykieta)
+            with st.container(border=True):
+                render_wynik(wynik, aktualna_dlugosc, limit, jednostka_etykieta)
             raport = wynik_do_markdown(
                 wynik, tytul, kategoria, aktualna_dlugosc, limit, jednostka_etykieta
             )
@@ -607,3 +614,6 @@ if st.session_state.historia:
     st.divider()
     with st.expander(t("history_expander", n=len(st.session_state.historia))):
         st.dataframe(st.session_state.historia, use_container_width=True, hide_index=True)
+
+st.divider()
+st.caption("Studenckie Koło Naukowe Innowacji Medycznych · Gdański Uniwersytet Medyczny")
