@@ -453,8 +453,11 @@ def clear_abstrakt():
 def render_header():
     logo_col, lang_col = st.columns([3, 1])
     with logo_col:
-        if os.path.exists(LOGO_PATH):
-            st.image(LOGO_PATH, width=260)
+        if os.path.exists(LOGO_PATH) and os.path.getsize(LOGO_PATH) > 0:
+            try:
+                st.image(LOGO_PATH, width=260)
+            except Exception:
+                pass  # uszkodzony/nieczytelny plik logo — pomiń, nie wywalaj aplikacji
     with lang_col:
         st.selectbox(
             "🌐", ["Polski", "English"], key="ui_lang", label_visibility="collapsed",
