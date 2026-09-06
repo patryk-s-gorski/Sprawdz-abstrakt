@@ -11,7 +11,7 @@ load_dotenv()
 
 MODEL = "claude-sonnet-5"
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "criteria_config.json")
-LOGO_PATH = os.path.join(os.path.dirname(__file__), "assets", "logo.jpg")
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "assets", "logo.svg")
 
 # Jednostki liczenia limitu. Klucze są stałe (używane w kodzie), etykiety tłumaczone przez t().
 JEDNOSTKI = {
