@@ -79,7 +79,7 @@ TRANSLATIONS = {
         "status_ready": "Gotowy do wysłania",
         "status_minor": "Wymaga drobnych poprawek",
         "status_needs_work": "Wymaga jeszcze pracy",
-        "average_caption": "**{etykieta}** (średnia z 3 wymiarów: {srednia}/100)",
+        "average_subtitle": "Średnia z 3 wymiarów: {srednia}/100",
     },
     "English": {
         "app_title": "Check your abstract",
@@ -134,7 +134,7 @@ TRANSLATIONS = {
         "status_ready": "Ready to submit",
         "status_minor": "Needs minor revisions",
         "status_needs_work": "Needs more work",
-        "average_caption": "**{etykieta}** (average of 3 dimensions: {srednia}/100)",
+        "average_subtitle": "Average of 3 dimensions: {srednia}/100",
     },
 }
 
@@ -213,17 +213,47 @@ def gauge_svg(punktacja, size=140):
     circumference = 2 * math.pi * r
     offset = circumference * (1 - punktacja / 100)
     kolor = kolor_wyniku(punktacja)
-    font_num = size * 0.24
+    font_num = size * 0.26
+    font_sub = size * 0.09
     return f"""
-<div style="display:flex; justify-content:center; margin: 2px 0 4px 0;">
-  <svg width="{size}" height="{size}" viewBox="0 0 {size} {size}">
-    <circle cx="{cx}" cy="{cy}" r="{r}" stroke="#E5E7EB" stroke-width="{stroke}" fill="none" />
-    <circle cx="{cx}" cy="{cy}" r="{r}" stroke="{kolor}" stroke-width="{stroke}" fill="none"
-      stroke-dasharray="{circumference:.2f}" stroke-dashoffset="{offset:.2f}"
-      stroke-linecap="round" transform="rotate(-90 {cx} {cy})" />
-    <text x="{cx}" y="{cy + font_num * 0.32:.1f}" text-anchor="middle" font-size="{font_num:.0f}"
-      font-weight="700" fill="{kolor}" font-family="sans-serif">{punktacja}</text>
-  </svg>
+<svg width="{size}" height="{size}" viewBox="0 0 {size} {size}">
+  <circle cx="{cx}" cy="{cy}" r="{r}" stroke="#E2E8F0" stroke-width="{stroke}" fill="none" />
+  <circle cx="{cx}" cy="{cy}" r="{r}" stroke="{kolor}" stroke-width="{stroke}" fill="none"
+    stroke-dasharray="{circumference:.2f}" stroke-dashoffset="{offset:.2f}"
+    stroke-linecap="round" transform="rotate(-90 {cx} {cy})" />
+  <text x="{cx}" y="{cy - font_sub * 0.2:.1f}" text-anchor="middle" font-size="{font_num:.0f}"
+    font-weight="800" fill="{kolor}" font-family="'Manrope', sans-serif">{punktacja}</text>
+  <text x="{cx}" y="{cy + font_num * 0.62:.1f}" text-anchor="middle" font-size="{font_sub:.0f}"
+    font-weight="600" fill="#94A3B8" font-family="'Manrope', sans-serif">/ 100</text>
+</svg>
+"""
+
+
+def score_card_html(nazwa, punktacja, size=140):
+    ring = gauge_svg(punktacja, size=size)
+    return f"""
+<div style="text-align:center; margin-bottom:4px;">
+  <div style="font-family:'Manrope',sans-serif; font-weight:700; font-size:0.92rem;
+       color:#0F172A; margin-bottom:2px;">{nazwa}</div>
+  <div style="display:flex; justify-content:center;">{ring}</div>
+</div>
+"""
+
+
+def verdict_banner_html(status_key, etykieta, podtytul):
+    kolor = {"success": "#15803D", "warning": "#B45309", "error": "#B91C1C"}[status_key]
+    symbol = {"success": "✓", "warning": "!", "error": "✕"}[status_key]
+    return f"""
+<div style="display:flex; align-items:center; gap:14px; padding:14px 18px;
+     border-radius:10px; border-left:5px solid {kolor}; background:{kolor}18; margin:6px 0 14px 0;">
+  <div style="flex-shrink:0; width:34px; height:34px; border-radius:50%; background:{kolor};
+       color:white; display:flex; align-items:center; justify-content:center;
+       font-size:18px; font-weight:700; font-family:'Manrope',sans-serif;">{symbol}</div>
+  <div>
+    <div style="font-family:'Manrope',sans-serif; font-weight:700; font-size:1.02rem;
+         color:#0F172A;">{etykieta}</div>
+    <div style="font-size:0.84rem; color:#64748B; margin-top:1px;">{podtytul}</div>
+  </div>
 </div>
 """
 
@@ -369,31 +399,47 @@ def render_wynik(wynik, aktualna_dlugosc, limit, jednostka_etykieta):
         wartosc = bezpieczna_punktacja(wynik, klucz)
         punktacje[klucz] = wartosc
         with kol:
-            st.markdown(
-                f"<p style='text-align:center; font-weight:600; margin-bottom:0;'>{t(f'dim_{klucz}')}</p>",
-                unsafe_allow_html=True,
-            )
             if wartosc is not None:
-                st.markdown(gauge_svg(wartosc), unsafe_allow_html=True)
+                st.markdown(score_card_html(t(f"dim_{klucz}"), wartosc), unsafe_allow_html=True)
             else:
+                st.markdown(
+                    f"<div style='text-align:center; font-family:Manrope,sans-serif; "
+                    f"font-weight:700; font-size:0.92rem;'>{t(f'dim_{klucz}')}</div>",
+                    unsafe_allow_html=True,
+                )
                 st.caption(t("no_score"))
 
     dostepne = [v for v in punktacje.values() if v is not None]
     if dostepne:
         srednia = round(sum(dostepne) / len(dostepne))
         status, etykieta = etykieta_wyniku(srednia)
-        getattr(st, status)(t("average_caption", etykieta=etykieta, srednia=srednia))
+        st.markdown(
+            verdict_banner_html(status, etykieta, t("average_subtitle", srednia=srednia)),
+            unsafe_allow_html=True,
+        )
     st.caption(t("diagnostic_caption"))
 
-    if aktualna_dlugosc > limit:
-        st.caption(t("length_over", aktualna=aktualna_dlugosc, limit=limit, jednostka=jednostka_etykieta))
-    else:
-        st.caption(t("length_ok", aktualna=aktualna_dlugosc, limit=limit, jednostka=jednostka_etykieta))
+    dlugosc_ok = aktualna_dlugosc <= limit
+    dlugosc_klucz = "length_ok" if dlugosc_ok else "length_over"
+    dlugosc_tekst = t(dlugosc_klucz, aktualna=aktualna_dlugosc, limit=limit, jednostka=jednostka_etykieta)
+    dlugosc_kolor = "#15803D" if dlugosc_ok else "#B91C1C"
+    dlugosc_tlo = "#DCFCE7" if dlugosc_ok else "#FEE2E2"
+    st.markdown(
+        f'<span style="display:inline-block; padding:3px 12px; border-radius:999px; '
+        f'font-size:0.82rem; font-weight:600; background:{dlugosc_tlo}; color:{dlugosc_kolor}; '
+        f'margin-bottom:8px;">{dlugosc_tekst}</span>',
+        unsafe_allow_html=True,
+    )
 
     if wynik.get("mocne_strony"):
         st.markdown(f"**{t('strengths_header')}**")
         for punkt in wynik["mocne_strony"]:
-            st.markdown(f"- {punkt}")
+            st.markdown(
+                f'<div style="display:flex; gap:8px; margin-bottom:4px; align-items:flex-start;">'
+                f'<span style="color:#15803D; font-weight:800; flex-shrink:0;">✓</span>'
+                f'<span>{punkt}</span></div>',
+                unsafe_allow_html=True,
+            )
 
     if wynik.get("do_poprawy"):
         st.markdown(f"**{t('improve_header')}**")
@@ -401,7 +447,12 @@ def render_wynik(wynik, aktualna_dlugosc, limit, jednostka_etykieta):
             skrot = item.get("fragment", "")[:60]
             with st.expander(f"{i}. {skrot}..."):
                 st.markdown(f"> {item.get('fragment', '')}")
-                st.markdown(f"**{t('suggestion_label')}** {item.get('sugestia', '')}")
+                st.markdown(
+                    f'<div style="background:#EEF2F8; border-radius:8px; padding:10px 14px; '
+                    f'margin-top:6px;"><strong>{t("suggestion_label")}</strong> '
+                    f'{item.get("sugestia", "")}</div>',
+                    unsafe_allow_html=True,
+                )
 
 
 def wynik_do_markdown(wynik, tytul, kategoria, aktualna_dlugosc, limit, jednostka_etykieta):
@@ -466,9 +517,23 @@ def render_header():
     st.caption(t("app_caption"))
 
 
+GLOBAL_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+h1, h2, h3 {
+    font-family: 'Manrope', sans-serif !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.02em;
+}
+</style>
+"""
+
+
 # ---------------- UI ----------------
 
 st.set_page_config(page_title="Sprawdź swój abstrakt / Check your abstract", page_icon="📝", layout="centered")
+st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 config = load_config()
 
@@ -536,33 +601,34 @@ with st.sidebar:
 
     with st.expander(t("criteria_expander")):
         st.markdown(f"**{t('structure_prefix')}:** {opis_struktury(kat_cfg)}")
-        st.markdown(f"**{t('merit_criteria_header')}**")
+        st.markdown(f"**🔬 {t('merit_criteria_header')}**")
         for k in kat_cfg["kryteria_merytoryczne"]:
             st.markdown(f"- {k}")
-        st.markdown(f"**{t('formal_criteria_header')}**")
+        st.markdown(f"**📐 {t('formal_criteria_header')}**")
         for k in kat_cfg["kryteria_formalne"]:
             st.markdown(f"- {k}")
 
-tytul = st.text_input(
-    t("title_input_label"), key="abstrakt_tytul", placeholder=t("title_placeholder"),
-)
-
-col_a, col_b = st.columns([4, 1])
-with col_a:
-    tekst = st.text_area(
-        t("text_area_label"), height=280,
-        key="abstrakt_tekst", placeholder=t("text_area_placeholder"),
+with st.container(border=True):
+    tytul = st.text_input(
+        t("title_input_label"), key="abstrakt_tytul", placeholder=t("title_placeholder"),
     )
-with col_b:
-    st.write("")
-    st.write("")
-    st.button(t("clear_button"), use_container_width=True, on_click=clear_abstrakt)
 
-aktualna_dlugosc = policz_dlugosc(tekst, jednostka_klucz)
-procent = min(aktualna_dlugosc / limit, 1.0) if limit else 0.0
-st.progress(procent)
-kolor = "red" if aktualna_dlugosc > limit else "gray"
-st.caption(f":{kolor}[{t('length_caption', aktualna=aktualna_dlugosc, limit=limit, jednostka=jednostka_etykieta)}]")
+    col_a, col_b = st.columns([4, 1])
+    with col_a:
+        tekst = st.text_area(
+            t("text_area_label"), height=280,
+            key="abstrakt_tekst", placeholder=t("text_area_placeholder"),
+        )
+    with col_b:
+        st.write("")
+        st.write("")
+        st.button(t("clear_button"), use_container_width=True, on_click=clear_abstrakt)
+
+    aktualna_dlugosc = policz_dlugosc(tekst, jednostka_klucz)
+    procent = min(aktualna_dlugosc / limit, 1.0) if limit else 0.0
+    st.progress(procent)
+    kolor = "red" if aktualna_dlugosc > limit else "gray"
+    st.caption(f":{kolor}[{t('length_caption', aktualna=aktualna_dlugosc, limit=limit, jednostka=jednostka_etykieta)}]")
 
 gotowe_do_sprawdzenia = bool(tytul.strip()) and bool(tekst.strip())
 
